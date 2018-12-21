@@ -10,5 +10,6 @@ Consists of a jupyter notebook and a supporting library to
 https://github.com/johnbradley/k8s-bespin-playground/blob/master/bespinjob/BespinJob.ipynb
 
 # staging
-Consists of a couple scripts to stage data in and out of DukeDS and a Dockerfile
+Consists of a couple scripts to stage data in and out of DukeDS and a Dockerfile.
+This has been built and temporarily pushed to `jbradley/duke-ds-staging`.
 https://github.com/johnbradley/k8s-bespin-playground/blob/master/staging/Dockerfile
