@@ -4,10 +4,32 @@ apiVersion: v1
 metadata:
   name: bespin
 objects:
-- kind: ServiceAccount
-  apiVersion: v1
-  metadata:
-    name: bespin-sa
+
+#- kind: ServiceAccount
+#  apiVersion: v1
+#  metadata:
+#    name: bespin-service-account
+#
+#- kind: Role
+#  apiVersion: rbac.authorization.k8s.io/v1
+#  metadata:
+#    name: bespin-service-account-role
+#  rules:
+#  - apiGroups: [""] # "" indicates the core API group
+#    resources: ["pods"]
+#    verbs: ["get", "list"]
+#
+#- kind: RoleBinding
+#  apiVersion: rbac.authorization.k8s.io/v1
+#  metadata:
+#    name: bespin-service-account-binding
+#  roleRef:
+#    kind: Role
+#    name: bespin-service-account-role
+#  subjects:
+#    - kind: ServiceAccount
+#      name: bespin-service-account
+
 - kind: Secret
   apiVersion: v1
   metadata:
@@ -16,6 +38,7 @@ objects:
     database-user: "${DATABASE_USER}"
     database-password: "${DATABASE_PASSWORD}"
     django-secret-key: "${DJANGO_SECRET_KEY}"
+
 - kind: Service
   apiVersion: v1
   metadata:
@@ -31,6 +54,7 @@ objects:
       targetPort: 8080
     selector:
       name: "${NAME}"
+
 - kind: Route
   apiVersion: v1
   metadata:
@@ -40,12 +64,14 @@ objects:
     to:
       kind: Service
       name: "${NAME}"
+
 - kind: ImageStream
   apiVersion: v1
   metadata:
     name: "${NAME}"
     annotations:
       description: Keeps track of changes in the application image
+
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -80,6 +106,7 @@ objects:
     - type: GitHub
       github:
         secret: "${GITHUB_WEBHOOK_SECRET}"
+
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -109,7 +136,6 @@ objects:
         labels:
           name: "${NAME}"
       spec:
-        serviceAccount: bespin-sa
         containers:
         - name: bespin-api
           image: " "
@@ -148,6 +174,7 @@ objects:
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"
+
 - kind: PersistentVolumeClaim
   apiVersion: v1
   metadata:
@@ -158,6 +185,7 @@ objects:
     resources:
       requests:
         storage: "${VOLUME_CAPACITY}"
+
 - kind: Service
   apiVersion: v1
   metadata:
@@ -171,6 +199,7 @@ objects:
       targetPort: 5432
     selector:
       name: "${DATABASE_SERVICE_NAME}"
+
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
