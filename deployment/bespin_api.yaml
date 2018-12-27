@@ -5,30 +5,25 @@ metadata:
   name: bespin
 objects:
 
-#- kind: ServiceAccount
-#  apiVersion: v1
-#  metadata:
-#    name: bespin-service-account
-#
-#- kind: Role
-#  apiVersion: rbac.authorization.k8s.io/v1
-#  metadata:
-#    name: bespin-service-account-role
-#  rules:
-#  - apiGroups: [""] # "" indicates the core API group
-#    resources: ["pods"]
-#    verbs: ["get", "list"]
-#
-#- kind: RoleBinding
-#  apiVersion: rbac.authorization.k8s.io/v1
-#  metadata:
-#    name: bespin-service-account-binding
-#  roleRef:
-#    kind: Role
-#    name: bespin-service-account-role
-#  subjects:
-#    - kind: ServiceAccount
-#      name: bespin-service-account
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: bespin-service-account
+
+- kind: RoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: mybinding
+    namespace: metadata.namespace
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: admin
+  subjects:
+  - kind: ServiceAccount
+    apiVersion: v1
+    name: bespin-service-account
+    namespace: metadata.namespace
 
 - kind: Secret
   apiVersion: v1
@@ -38,6 +33,7 @@ objects:
     database-user: "${DATABASE_USER}"
     database-password: "${DATABASE_PASSWORD}"
     django-secret-key: "${DJANGO_SECRET_KEY}"
+    database-url: "postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}"
 
 - kind: Service
   apiVersion: v1
@@ -122,7 +118,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - django-psql-persistent
+        - bespin-api
         from:
           kind: ImageStreamTag
           name: "${NAME}:latest"
@@ -136,6 +132,7 @@ objects:
         labels:
           name: "${NAME}"
       spec:
+        serviceAccount: bespin-service-account
         containers:
         - name: bespin-api
           image: " "
