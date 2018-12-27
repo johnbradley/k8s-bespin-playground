@@ -13,7 +13,7 @@ objects:
 - kind: RoleBinding
   apiVersion: rbac.authorization.k8s.io/v1
   metadata:
-    name: mybinding
+    name: bespin-service-account
     namespace: metadata.namespace
   roleRef:
     apiGroup: rbac.authorization.k8s.io
@@ -143,27 +143,16 @@ objects:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: DJANGO_SETTINGS_MODULE
+            value: "${DJANGO_SETTINGS_MODULE}"
           - name: DATABASE_URL
-            value: "postgres://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_SERVICE_NAME}/${DATABASE_NAME}"
-          - name: DATABASE_SERVICE_NAME
-            value: "${DATABASE_SERVICE_NAME}"
-          - name: DATABASE_ENGINE
-            value: "${DATABASE_ENGINE}"
-          - name: DATABASE_NAME
-            value: "${DATABASE_NAME}"
-          - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
                 name: "${NAME}"
-                key: database-user
-          - name: DATABASE_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${NAME}"
-                key: database-password
+                key: database-url
           - name: APP_CONFIG
             value: "${APP_CONFIG}"
-          - name: DJANGO_SECRET_KEY
+          - name: BESPIN_SECRET_KEY
             valueFrom:
               secretKeyRef:
                 name: "${NAME}"
@@ -373,3 +362,7 @@ parameters:
   displayName: Custom PyPi Index URL
   description: The custom PyPi index URL
   value: ''
+- name: DJANGO_SETTINGS_MODULE
+  displayName: DJANGO_SETTINGS_MODULE environment variable
+  description: which django settings we will use
+  value: bespin.settings_prod
