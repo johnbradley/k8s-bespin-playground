@@ -87,7 +87,7 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          namespace: "${NAMESPACE}"
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
           name: python:${PYTHON_VERSION}
         env:
         - name: PIP_INDEX_URL
@@ -215,7 +215,7 @@ objects:
         - postgresql
         from:
           kind: ImageStreamTag
-          namespace: "${NAMESPACE}"
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
           name: postgresql:${POSTGRESQL_VERSION}
     - type: ConfigChange
     replicas: 1
@@ -274,7 +274,7 @@ parameters:
   description: The name assigned to all of the frontend objects defined in this template.
   required: true
   value: bespin-api
-- name: NAMESPACE
+- name: IMAGE_STREAM_NAMESPACE
   displayName: Namespace
   required: true
   description: The OpenShift Namespace where the ImageStream resides.
