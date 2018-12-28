@@ -1,0 +1,163 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  name: bespin-db
+
+parameters:
+- name: DATABASE_SERVICE_NAME
+  displayName: Database Service Name
+  required: true
+  value: bespin-db
+
+- name: DATABASE_NAME
+  displayName: database-name
+  description: Name of database used for bespin
+  required: true
+  value: bespin
+
+- name: DATABASE_USER
+  displayName: database-user
+  description: Name of database used for bespin
+  required: true
+  value: lando
+
+- name: DATABASE_PASSWORD
+  displayName: database-password
+  description: Password for the bespin database
+  generate: expression
+  from: "[a-zA-Z0-9]{50}"
+
+- name: VOLUME_CAPACITY
+  displayName: Volume Capacity
+  description: Volume space available for data, e.g. 512Mi, 2Gi
+  value: 1Gi
+  required: true
+
+- name: IMAGE_STREAM_NAMESPACE
+  displayName: Namespace
+  required: true
+  description: The OpenShift Namespace where the ImageStream resides.
+  value: openshift
+
+- name: MEMORY_POSTGRESQL_LIMIT
+  displayName: Memory Limit (PostgreSQL)
+  required: true
+  description: Maximum amount of memory the PostgreSQL container can use.
+  value: 512Mi
+
+- name: POSTGRESQL_VERSION
+  displayName: Version of PostgreSQL Image
+  description: Version of PostgreSQL image to be used (10 or latest).
+  value: '10'
+  required: true
+
+objects:
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+  stringData:
+    name: "${DATABASE_NAME}"
+    user: "${DATABASE_USER}"
+    password: "${DATABASE_PASSWORD}"
+
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "${VOLUME_CAPACITY}"
+
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+    annotations:
+      description: Exposes the database server
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      targetPort: 5432
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${DATABASE_SERVICE_NAME}"
+    annotations:
+      description: Defines how to deploy the database
+      template.alpha.openshift.io/wait-for-ready: 'true'
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
+          name: "postgresql:${POSTGRESQL_VERSION}"
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      name: "${DATABASE_SERVICE_NAME}"
+    template:
+      metadata:
+        name: "${DATABASE_SERVICE_NAME}"
+        labels:
+          name: "${DATABASE_SERVICE_NAME}"
+      spec:
+        volumes:
+        - name: "${DATABASE_SERVICE_NAME}-data"
+          persistentVolumeClaim:
+            claimName: "${DATABASE_SERVICE_NAME}"
+        containers:
+        - name: postgresql
+          image: " "
+          ports:
+          - containerPort: 5432
+          env:
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: "${DATABASE_SERVICE_NAME}"
+                key: name
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: "${DATABASE_SERVICE_NAME}"
+                key: user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: "${DATABASE_SERVICE_NAME}"
+                key: password
+          volumeMounts:
+          - name: "${DATABASE_SERVICE_NAME}-data"
+            mountPath: "/var/lib/pgsql/data"
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            exec:
+              command:
+              - "/usr/libexec/check-container"
+          livenessProbe:
+            timeoutSeconds: 10
+            initialDelaySeconds: 120
+            exec:
+              command:
+              - "/usr/libexec/check-container"
+              - "--live"
+          resources:
+            limits:
+              memory: "${MEMORY_POSTGRESQL_LIMIT}"

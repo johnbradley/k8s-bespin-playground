@@ -97,6 +97,7 @@ objects:
     name: "${BESPIN_API_SERVICE_NAME}"
   data:
     allowed_host: "${BESPIN_API_ALLOWED_HOST}"
+    django_settings_module: "${DJANGO_SETTINGS_MODULE}"
 
 - kind: ServiceAccount
   apiVersion: v1
@@ -226,7 +227,10 @@ objects:
               fieldRef:
                 fieldPath: metadata.namespace
           - name: DJANGO_SETTINGS_MODULE
-            value: "${DJANGO_SETTINGS_MODULE}"
+            valueFrom:
+              configMapKeyRef:
+                name: bespin-api
+                key: django_settings_module
           - name: BESPIN_DB_HOST
             value: "${DATABASE_SERVICE_NAME}"
           - name: BESPIN_DB_NAME
@@ -258,18 +262,18 @@ objects:
                 key: allowed_host
           - name: APP_MODULE
             value: "bespin.wsgi:application"
-#          readinessProbe:
-#            timeoutSeconds: 3
-#            initialDelaySeconds: 3
-#            httpGet:
-#              path: "/api"
-#              port: 8080
-#          livenessProbe:
-#            timeoutSeconds: 3
-#            initialDelaySeconds: 30
-#            httpGet:
-#              path: "/api"
-#              port: 8080
+          readinessProbe:
+            timeoutSeconds: 3
+            initialDelaySeconds: 3
+            httpGet:
+              path: "/api"
+              port: 8080
+          livenessProbe:
+            timeoutSeconds: 3
+            initialDelaySeconds: 30
+            httpGet:
+              path: "/api"
+              port: 8080
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"

@@ -1,0 +1,57 @@
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: bespin-fun
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: '*'
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 100
+  template:
+    spec:
+      containers:
+      - name: bespin-api-loader
+        image: "bespin-api:latest"
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: DJANGO_SETTINGS_MODULE
+          valueFrom:
+            configMapKeyRef:
+              name: bespin-api
+              key: django_settings_module
+        - name: BESPIN_DB_HOST
+          value: bespin-db
+        - name: BESPIN_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: bespin-db
+              key: name
+        - name: BESPIN_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: bespin-db
+              key: user
+        - name: BESPIN_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: bespin-db
+              key: password
+        - name: APP_CONFIG
+          value: "${APP_CONFIG}"
+        - name: BESPIN_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bespin-api
+              key: secretkey
+        - name: BESPIN_ALLOWED_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: bespin-api
+              key: allowed_host
+        - name: APP_MODULE
+          value: "bespin.wsgi:application"
+        command: ["python",  "manage.py", "makeusertoken", "jpb", "secret", "sometokennumber"]
+      restartPolicy: Never
