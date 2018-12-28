@@ -117,7 +117,6 @@ objects:
   - kind: ServiceAccount
     apiVersion: v1
     name: bespin-service-account
-    namespace: metadata.namespace
 
 - kind: Service
   apiVersion: v1
