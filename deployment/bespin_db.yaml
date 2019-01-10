@@ -58,9 +58,9 @@ objects:
   metadata:
     name: "${DATABASE_SERVICE_NAME}"
   stringData:
-    name: "${DATABASE_NAME}"
-    user: "${DATABASE_USER}"
-    password: "${DATABASE_PASSWORD}"
+    NAME: "${DATABASE_NAME}"
+    USER: "${DATABASE_USER}"
+    PASSWORD: "${DATABASE_PASSWORD}"
 
 - kind: PersistentVolumeClaim
   apiVersion: v1
@@ -131,17 +131,17 @@ objects:
             valueFrom:
               secretKeyRef:
                 name: "${DATABASE_SERVICE_NAME}"
-                key: name
+                key: NAME
           - name: POSTGRESQL_USER
             valueFrom:
               secretKeyRef:
                 name: "${DATABASE_SERVICE_NAME}"
-                key: user
+                key: USER
           - name: POSTGRESQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: "${DATABASE_SERVICE_NAME}"
-                key: password
+                key: PASSWORD
           volumeMounts:
           - name: "${DATABASE_SERVICE_NAME}-data"
             mountPath: "/var/lib/pgsql/data"

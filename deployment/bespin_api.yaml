@@ -220,6 +220,13 @@ objects:
           image: " "
           ports:
           - containerPort: 8080
+          envFrom:
+            - prefix: RABBIT_
+              secretRef:
+                 name: rabbitmq-cluster-secret
+            - prefix: BESPIN_DB_
+              secretRef:
+                 name: "${DATABASE_SERVICE_NAME}"
           env:
           - name: POD_NAMESPACE
             valueFrom:
@@ -232,21 +239,6 @@ objects:
                 key: django_settings_module
           - name: BESPIN_DB_HOST
             value: "${DATABASE_SERVICE_NAME}"
-          - name: BESPIN_DB_NAME
-            valueFrom:
-              secretKeyRef:
-                name: "${DATABASE_SERVICE_NAME}"
-                key: name
-          - name: BESPIN_DB_USER
-            valueFrom:
-              secretKeyRef:
-                name: "${DATABASE_SERVICE_NAME}"
-                key: user
-          - name: BESPIN_DB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: "${DATABASE_SERVICE_NAME}"
-                key: password
           - name: APP_CONFIG
             value: "${APP_CONFIG}"
           - name: BESPIN_SECRET_KEY
